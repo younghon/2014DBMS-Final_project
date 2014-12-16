@@ -1,14 +1,10 @@
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-
-import javax.net.ssl.SSLContext;
 
 
 
@@ -17,9 +13,9 @@ public class mydbms {
 	static String[] indexTable = {"BAT", "FIELD", "PITCH", "PLAYER", "TEAM"}; // table to be read
 	static String[] selectAttr, fromEntity, whereCondition; // each part of SQL
 	static int selectN, fromN, whereN; // numbers of each part of SQL
-	static List<condi> condition = new ArrayList<condi>();
-	static List<String> total_attr = new ArrayList<String>(); //FROM table attributes
-	static List<table> tables = new ArrayList<table>();
+	static List<Condi> Conditions = new ArrayList<Condi>();
+	static List<Table> tables = new ArrayList<Table>();
+	static List<String> total_attr = new ArrayList<String>();
 	
 	
 	public static void main(String[] args) throws IOException {
@@ -29,7 +25,7 @@ public class mydbms {
 		int index;
 		
 		while(true){
-			condition.clear();
+			Conditions.clear();
 			tables.clear();
 			System.out.print("Input SQL query ('quit' to exit): ");
 			line = br.readLine();
@@ -71,239 +67,136 @@ public class mydbms {
 				whereN = whereCondition.length;
 			}
 			
-			//1.將From內的所有table的attributes加入total_attr裡      2.建立tables;每個table內包含attributes、tuples
-			for(int i=0; i<fromN; i++){
-				BufferedReader readfile = new BufferedReader(new FileReader(fromEntity[i]+".txt"));
-				table t = new table();
-				String tmp = readfile.readLine();
-				String[] s = tmp.split("\t");
-				for(int j=0;j<s.length;j++){
-					total_attr.add(s[j].replace(" ",""));
-					t.attibutes.add(s[j].replace(" ",""));
-				}
-				while(true){
-					tmp = readfile.readLine();
-					if(tmp == null){
-						tables.add(t);
-						break;
-					}else{
-						s = tmp.split("\t");
-						ArrayList<String> tuple = new ArrayList<String>();
-						for(int j=0;j<s.length;j++){
-							tuple.add(s[j].replace(" ",""));
-						}
-						t.tuples.add(tuple);
-					}
-				}
-				
-			}
 			
-			
+			build_tables();
 			parseWHERE();
 			Retrieve();
+			
 		}
 	}
 	
-	
-	static void Retrieve() throws IOException{
-		//Debug
-		System.out.print("Select attributes:");
-		for(int i=0;i<selectN;i++){
-			System.out.print(selectAttr[i]+" ");
-		}
-		System.out.println();
-		if(fromN==1){
-			BufferedReader br = new BufferedReader(new FileReader(fromEntity[0]+".txt"));
-			while(true)
-		    {
-		        String line = br.readLine();
-		        if(line == null)
-		           break;
-		        System.out.println(line);
-		    }
-		}
-		System.out.println();
-		System.out.println();
-				
-		
-		if(selectN==1 && selectAttr[0].equals("*")){
-			selectN = tables.get(0).attibutes.size();
-			selectAttr = new String[selectN];
-			for(int i=0;i<selectN;i++){
-				selectAttr[i] = tables.get(0).attibutes.get(i);
+	static void build_tables() throws IOException{
+		//1.建立tables;每個table內包含attributes、tuples  2.將From內的所有table的attributes加入total_attr裡     
+		for(int i=0; i<fromN; i++){
+			BufferedReader readfile = new BufferedReader(new FileReader(fromEntity[i]+".txt"));
+			Table t = new Table();
+			String tmp = readfile.readLine();
+			String[] s = tmp.split("\t");
+			for(int j=0;j<s.length;j++){
+				t.attributes.add(s[j].replace(" ",""));
+				total_attr.add(s[j].replace(" ",""));
 			}
-		}
-		
-		//select from one table on some conditions
-		for(int i=0;i<whereN;i++){
-			boolean find_matched_operand = false;
-			if(condition.get(i).lefthand==null){
-				System.out.println("Condition's lefthand is not found.(Invalid operator)");
-				return;
-			}
-			for(int j=0;j<tables.get(0).attibutes.size();j++){
-				if(condition.get(i).lefthand.equals(tables.get(0).attibutes.get(j))){  //找到table的第j個attribute是要檢查的項目
-					find_matched_operand = true;
-					Iterator<ArrayList<String>> iter = tables.get(0).tuples.iterator();//檢查每個tuple是否符合condition,不符合的tuple從tuples中remove
-					while (iter.hasNext()) {
-					   ArrayList<String> current_tuple = iter.next();
-					   switch (condition.get(i).operator) {
-							case "=":
-								//System.out.println(current_tuple.get(j)+" =? "+condition.get(i).righthand);
-								if(!current_tuple.get(j).equals(condition.get(i).righthand)){
-									iter.remove();
-								}
-								break;
-							case "<":
-								//System.out.println(current_tuple.get(j)+" <? "+condition.get(i).righthand);
-								if(!(Double.parseDouble(current_tuple.get(j))<Double.parseDouble(condition.get(i).righthand))){
-									iter.remove();
-								}
-								break;
-							case ">":
-								//System.out.println(current_tuple.get(j)+" >? "+condition.get(i).righthand);
-								if(!(Double.parseDouble(current_tuple.get(j))>Double.parseDouble(condition.get(i).righthand))){
-									iter.remove();
-								}
-								break;
-							case "<=":
-								//System.out.println(current_tuple.get(j)+" <=? "+condition.get(i).righthand);
-								if(Double.parseDouble(current_tuple.get(j))>Double.parseDouble(condition.get(i).righthand)){
-									iter.remove();
-								}
-								break;
-							case ">=":
-								//System.out.println(current_tuple.get(j)+" >=? "+condition.get(i).righthand);
-								if(Double.parseDouble(current_tuple.get(j))<Double.parseDouble(condition.get(i).righthand)){
-									iter.remove();
-								}
-								break;
-							case "!=":
-								//System.out.println(current_tuple.get(j)+" !=? "+condition.get(i).righthand);
-								if(current_tuple.get(j).equals(condition.get(i).righthand)){
-									iter.remove();
-								}
-								break;
-	
-							default:
-								System.out.println("Invalid operator occurs in conditions.");
-								break;
-						}
+			while(true){
+				tmp = readfile.readLine();
+				if(tmp == null){
+					tables.add(t);
+					break;
+				}else{
+					s = tmp.split("\t");
+					ArrayList<String> tuple = new ArrayList<String>();
+					for(int j=0;j<s.length;j++){
+						tuple.add(s[j].replace(" ",""));
 					}
-				}	
-			}
-			if(!find_matched_operand){
-				System.out.println("Incorrect condition: Some attributes are not found in tables.");
-				return;
-			}
-		}
-		for(int i=0;i<selectN;i++){
-			System.out.print(selectAttr[i]+"\t");
-		}
-		System.out.println();
-		for(int i=0;i<tables.get(0).tuples.size();i++){
-			for(int j=0;j<selectN;j++){
-				for(int k=0;k<tables.get(0).attibutes.size();k++){
-					if(selectAttr[j].equals(tables.get(0).attibutes.get(k)))
-						System.out.print(tables.get(0).tuples.get(i).get(k)+"\t");
+					t.tuples.add(tuple);
 				}
 			}
-			System.out.println();
 		}
-		
-		
-		
-		
 	}
-	
 	
 	
 	// divide the condition into three parts: lefthand operand, operator, righthand operand
 	static void parseWHERE(){
-		System.out.println("Parsing WHERE conditions...");
+		//System.out.println("Parsing WHERE conditions...");
 		for(int i=0;i<whereN;i++){
-			condi condi1 = new condi(whereCondition[i]);
+			Condi condi1 = new Condi(whereCondition[i]);
 			//System.out.println(condi1.getSentence());
 			//System.out.println(condi1.getLefthand());
 			//System.out.println(condi1.getOperator());			
 			//System.out.println(condi1.getRighthand());
-			//System.out.println(condi1.getKind());
-			condition.add(condi1);
+			//System.out.println(condi1.getType());
+			Conditions.add(condi1);
 		}
 	}
 	
-}
+	static void Retrieve() {
+		for(int i=0;i<whereN;i++){
+			if(Conditions.get(i).type==1){	//select type
+				int target_table = -1;
+				int target_index = -1;
+				for(int j=0;j<tables.size();j++){
+					target_index = tables.get(j).findAttr_in_table(Conditions.get(i).lefthand);
+					if(target_index != -1){
+						target_table = j;
+						break;
+					}
+				}
+				
+				if(target_table==-1){
+					System.out.println("Condtion's lefthand is not found in every tables' attributes.");
+					return;
+				}
 
-
-class table{
-	List<String> attibutes = new ArrayList<String>();
-	List<ArrayList<String>> tuples = new ArrayList<ArrayList<String>>();	
-}
-
-class condi {
-	static String[] operator_type = {"!=", ">=", ">", "<=", "<", "="};
-	String sentence;
-	String lefthand = null;
-	String righthand = null;
-	int kind; /* 1:select, 2:join */
-	String operator = null;  
-
-	public condi(String sentence){
-		this.sentence = sentence;
-		findOperator();
-		if(operator!=null){	//如果operator parse失敗，後面的function也不必做了
-			findHands();
-			check_attr();
-		}else{
-			System.out.println("Incorrect operator is used..");
-		}
-	}
-	
-	public String getOperator() {
-		return operator;
-	}
-
-	public String getLefthand() {
-		return lefthand;
-	}
-
-	public String getRighthand() {
-		return righthand;
-	}
-
-	public String getSentence() {
-		return sentence;
-	}
-
-	public int getKind() {
-		return kind;
-	}
-
-	private void findOperator(){
-		for (int i=0; i<operator_type.length;i++) {
-			if(this.sentence.contains(operator_type[i])){
-				this.operator = operator_type[i];
-				return;
+				tables.get(target_table).remove(target_index, Conditions.get(i));
+			}else if(Conditions.get(i).type==2){	//join type
+				int target1_table = -1;
+				int target1_index = -1;
+				int target2_table = -1;
+				int target2_index = -1;
+				for(int j=0;j<tables.size();j++){
+					target1_index = tables.get(j).findAttr_in_table(Conditions.get(i).lefthand);
+					if(target1_index != -1){
+						target1_table = j;
+						break;
+					}
+				}
+				if(target1_table==-1){
+					System.out.println("Condtion's lefthand is not found in every tables' attributes.");
+					return;
+				}
+				for(int j=0;j<tables.size();j++){
+					target2_index = tables.get(j).findAttr_in_table(Conditions.get(i).righthand);
+					if(target2_index != -1){
+						target2_table = j;
+						break;
+					}
+				}
+				if(target2_table==-1){
+					System.out.println("Condtion's righthand is not found in every tables' attributes.");
+					return;
+				}
+				
+				Table table1 = tables.get(target1_table);
+				Table table2 = tables.get(target2_table);
+				tables.add(join(table1, table2, target1_index, target2_index));
+				tables.remove(table1);
+				tables.remove(table2);
+				
 			}
 		}
+		
+		tables.get(0).printOnScreen();
 	}
 	
-	private void findHands(){
-		String [] s = this.sentence.split(this.operator);
-		this.lefthand = s[0].replace(" ","");
-		this.righthand = s[1].replace(" ","");
-	}
-	
-	private void check_attr(){
-		this.kind = 1;
-		for(int i=0;i<mydbms.total_attr.size();i++){				//if RHS is a attribute, then set kind = 2; otherwise, set kind = 1
-			if(this.righthand.equals(mydbms.total_attr.get(i))){
-				this.kind = 2;
+	static Table join(Table table1, Table table2, int targetAttr1, int targetAttr2){
+		Table t = new Table();
+		for(int i=0;i<table1.attributes.size();i++)
+			t.attributes.add(table1.attributes.get(i));
+		for(int i=0;i<table2.attributes.size();i++)
+			t.attributes.add(table2.attributes.get(i)); //append table2's attributes to table1's
+		
+		for(int i=0;i<table1.tuples.size();i++){
+			for(int j=0;j<table2.tuples.size();j++){
+				if(table1.tuples.get(i).get(targetAttr1).equals(table2.tuples.get(j).get(targetAttr2))){
+					ArrayList<String> tuple = new ArrayList<String>();
+					for(int k=0;k<table1.tuples.get(i).size();k++)
+						tuple.add(table1.tuples.get(i).get(k));
+					for(int k=0;k<table2.tuples.get(j).size();k++)
+						tuple.add(table2.tuples.get(j).get(k));
+					t.tuples.add(tuple);
+				}
 			}
 		}
+		return t;
 	}
-	
+
 }
-
-
-
