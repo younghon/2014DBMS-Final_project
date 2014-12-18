@@ -174,7 +174,28 @@ public class mydbms {
 			}
 		}
 		
-		tables.get(0).printOnScreen();
+		//tables.get(0).printOnScreen();
+		parseSELECT(tables.get(0));
+		
+	}
+	
+	static void parseSELECT(Table resultTable){
+		//第0個attribute為"*"時,代表select all attributes in this table
+		if(selectAttr[0].equals("*")){
+			selectN = resultTable.attributes.size();
+			selectAttr = new String[selectN];
+			for(int i=0;i<selectN;i++){
+				selectAttr[i] = resultTable.attributes.get(i);
+			}
+		}
+		
+		
+		if(!Aggregate.isAggregate(selectAttr)){
+			resultTable.printOnScreen();
+		}else{
+			Aggregate ans = new Aggregate(selectAttr, resultTable);
+		}
+		
 	}
 	
 	static Table join(Table table1, Table table2, int targetAttr1, int targetAttr2){

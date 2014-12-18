@@ -38,15 +38,6 @@ public class Table {
 		int selectN = mydbms.selectN;
 		String[] selectAttr = mydbms.selectAttr;
 		
-		//第0個attribute為"*"時,代表select all attributes in this table
-		if(selectAttr[0].equals("*")){
-			selectN = this.attributes.size();
-			selectAttr = new String[selectN];
-			for(int i=0;i<selectN;i++){
-				selectAttr[i] = this.attributes.get(i);
-			}
-		}
-		
 		for(int i=0;i<selectN;i++){
 			System.out.print(selectAttr[i]+"\t");
 		}
