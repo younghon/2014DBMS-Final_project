@@ -125,6 +125,7 @@ public class Aggregate {
 			System.out.print(aggrList.get(i).value+"\t");
 		}
 		System.out.println();
+		aggrList.clear();
 	}
 	
 	static boolean isAggregate(String[] selectAttribute){

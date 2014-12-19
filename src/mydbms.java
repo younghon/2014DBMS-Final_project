@@ -9,7 +9,6 @@ import java.util.List;
 
 
 public class mydbms {
-	
 	static String[] indexTable = {"BAT", "FIELD", "PITCH", "PLAYER", "TEAM"}; // table to be read
 	static String[] selectAttr, fromEntity, whereCondition; // each part of SQL
 	static int selectN, fromN, whereN; // numbers of each part of SQL
@@ -21,58 +20,63 @@ public class mydbms {
 	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
 		BufferedReader br = new BufferedReader (new InputStreamReader(System.in));
-		String line;
-		int index;
-		
 		while(true){
+			//Initialize
 			Conditions.clear();
 			tables.clear();
+			total_attr.clear();
+			
 			System.out.print("Input SQL query ('quit' to exit): ");
-			line = br.readLine();
+			String line = br.readLine();
 			
 			if("quit".equals(line)){
 				System.out.print("quit... ");
 				break;
 			}
 			
-			index = line.indexOf("SELECT");
-			if(index == -1){
-				System.out.println("Incorrect SQL Query...");				
-				continue;				
+			if(readQuery(line)){
+				build_tables();
+				parseWHERE();
+				Retrieve();
 			}
-			index = line.indexOf("FROM");
-			if(index == -1){
-				System.out.println("Incorrect SQL Query...");				
-				continue;
-			}
-			
-			//get SELECT values
-			selectAttr = line.substring(6, index).replace(" ","").split(",");
-			selectN = selectAttr.length;
-			//get the string after"FROM"
-			line = line.substring(index+4);
-			
-			index = line.indexOf("WHERE");
-			if(index == -1){
-				//get FROM values
-				fromEntity = line.replace(" ","").split(",");
-				fromN = fromEntity.length;
-				whereN = 0;
-			}else{
-				//get FROM values
-				fromEntity = line.substring(0,index).replace(" ","").split(",");
-				fromN = fromEntity.length;
-				//get WHERE values
-				whereCondition = line.substring(index+5).replace(" ","").split("AND");
-				whereN = whereCondition.length;
-			}
-			
-			
-			build_tables();
-			parseWHERE();
-			Retrieve();
 			
 		}
+	}
+	
+	static boolean readQuery(String query){
+		int index = query.indexOf("SELECT");
+		if(index == -1){
+			System.out.println("Incorrect SQL Query...");				
+			return false;				
+		}
+		index = query.indexOf("FROM");
+		if(index == -1){
+			System.out.println("Incorrect SQL Query...");				
+			return false;
+		}
+		
+		//get SELECT values
+		selectAttr = query.substring(6, index).replace(" ","").split(",");
+		selectN = selectAttr.length;
+		//get the string after"FROM"
+		query = query.substring(index+4);
+		
+		index = query.indexOf("WHERE");
+		if(index == -1){
+			//get FROM values
+			fromEntity = query.replace(" ","").split(",");
+			fromN = fromEntity.length;
+			whereN = 0;
+		}else{
+			//get FROM values
+			fromEntity = query.substring(0,index).replace(" ","").split(",");
+			fromN = fromEntity.length;
+			//get WHERE values
+			whereCondition = query.substring(index+5).replace(" ","").split("AND");
+			whereN = whereCondition.length;
+		}
+		
+		return true;
 	}
 	
 	static void build_tables() throws IOException{
@@ -193,7 +197,7 @@ public class mydbms {
 		if(!Aggregate.isAggregate(selectAttr)){
 			resultTable.printOnScreen();
 		}else{
-			Aggregate ans = new Aggregate(selectAttr, resultTable);
+			new Aggregate(selectAttr, resultTable);
 		}
 		
 	}
