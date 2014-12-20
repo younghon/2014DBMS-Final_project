@@ -15,6 +15,7 @@ public class mydbms {
 	static List<Condi> Conditions = new ArrayList<Condi>();
 	static List<Table> tables = new ArrayList<Table>();
 	static List<String> total_attr = new ArrayList<String>();
+	static Table result;
 	
 	
 	public static void main(String[] args) throws IOException {
@@ -34,10 +35,38 @@ public class mydbms {
 				break;
 			}
 			
-			if(readQuery(line)){
+			if(line.contains(" IN")){
+				String IN_Part = line.substring(line.indexOf("IN"));
+				IN_Part = IN_Part.substring(IN_Part.indexOf("SELECT"));
+				System.out.println("Nested query: " + IN_Part);
+				//¥ý°µ§¹nested query
+				if(readQuery(IN_Part)){
+					build_tables();
+					parseWHERE();
+					Retrieve();
+				}
+				int nested_target = result.findAttr_in_table(selectAttr[0]);
+				//System.out.println("Nested select attribute: " + selectAttr[0]);
+				
+				if(readQuery(line.substring(0,line.indexOf("IN")))){
+					build_tables();
+					int out_target = tables.get(1).findAttr_in_table(whereCondition[0]);
+					Table table1 = result;
+					Table table2 = tables.get(1);
+					tables.add(join(table1, table2, nested_target, out_target));
+					tables.remove(table1);
+					tables.remove(table2);
+					result = tables.get(0);
+					parseSELECT(result);
+					System.out.println("Answer by nested query.");
+				}
+				
+			}else if(readQuery(line)){
 				build_tables();
 				parseWHERE();
 				Retrieve();
+				parseSELECT(result);
+				System.out.println("Answer by single query.");
 			}
 			
 		}
@@ -179,7 +208,8 @@ public class mydbms {
 		}
 		
 		//tables.get(0).printOnScreen();
-		parseSELECT(tables.get(0));
+		//parseSELECT(tables.get(0));
+		result = tables.get(0);
 		
 	}
 	
