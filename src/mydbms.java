@@ -36,7 +36,7 @@ public class mydbms {
 			}
 			
 			if(line.contains(" IN")){
-				String IN_Part = line.substring(line.indexOf("IN"));
+				String IN_Part = line.substring(line.lastIndexOf("IN"));
 				IN_Part = IN_Part.substring(IN_Part.indexOf("SELECT"));
 				System.out.println("Nested query: " + IN_Part);
 				//¥ý°µ§¹nested query
@@ -48,18 +48,39 @@ public class mydbms {
 				int nested_target = result.findAttr_in_table(selectAttr[0]);
 				//System.out.println("Nested select attribute: " + selectAttr[0]);
 				
-				if(readQuery(line.substring(0,line.indexOf("IN")))){
-					build_tables();
-					int out_target = tables.get(1).findAttr_in_table(whereCondition[0]);
-					Table table1 = result;
-					Table table2 = tables.get(1);
-					tables.add(join(table1, table2, nested_target, out_target));
-					tables.remove(table1);
-					tables.remove(table2);
-					result = tables.get(0);
-					parseSELECT(result);
-					System.out.println("Answer by nested query.");
+				String Outer_Part;
+				if(line.contains("NOT IN")){
+					Outer_Part = line.substring(0,line.indexOf("NOT IN"));
+					if(readQuery(Outer_Part)){
+						build_tables();
+						int out_target = tables.get(1).findAttr_in_table(whereCondition[0]);
+						Table table1 = result;
+						Table table2 = tables.get(1);
+						parseSELECT(table2);
+						tables.add(NOT_IN(table1, table2, nested_target, out_target));
+						tables.remove(table1);
+						tables.remove(table2);
+						result = tables.get(0);
+						parseSELECT(result);
+						System.out.println("Answer by nested query.");
+					}
+				}else{
+					Outer_Part = line.substring(0,line.indexOf("IN"));
+					if(readQuery(Outer_Part)){
+						build_tables();
+						int out_target = tables.get(1).findAttr_in_table(whereCondition[0]);
+						Table table1 = result;
+						Table table2 = tables.get(1);
+						parseSELECT(table2);
+						tables.add(join(table1, table2, nested_target, out_target));
+						tables.remove(table1);
+						tables.remove(table2);
+						result = tables.get(0);
+						parseSELECT(result);
+						System.out.println("Answer by nested query.");
+					}
 				}
+				
 				
 			}else if(readQuery(line)){
 				build_tables();
@@ -133,6 +154,7 @@ public class mydbms {
 					t.tuples.add(tuple);
 				}
 			}
+			readfile.close();
 		}
 	}
 	
@@ -251,6 +273,21 @@ public class mydbms {
 				}
 			}
 		}
+		return t;
+	}
+	
+	static Table NOT_IN(Table innerTable, Table outerTable, int innerAttr, int outerAttr){
+		Table t = new Table(outerTable);
+		
+		Iterator<ArrayList<String>> iter = t.tuples.iterator();
+		while (iter.hasNext()) {
+			   ArrayList<String> current_tuple = iter.next();
+			   for(int i=0;i<innerTable.tuples.size();i++){
+				   if(current_tuple.get(outerAttr).equals(innerTable.tuples.get(i).get(innerAttr)))
+						   iter.remove();
+			   }			
+		}
+		
 		return t;
 	}
 
