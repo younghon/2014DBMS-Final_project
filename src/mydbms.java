@@ -87,7 +87,7 @@ public class mydbms {
 	static void build_tables() throws IOException{
 		//1.建立tables;每個table內包含attributes、tuples  2.將From內的所有table的attributes加入total_attr裡     
 		for(int i=0; i<fromN; i++){
-			BufferedReader readfile = new BufferedReader(new FileReader(fromEntity[i]+".txt"));
+			BufferedReader readfile = new BufferedReader(new FileReader("dataset\\"+fromEntity[i]+".txt"));
 			Table t = new Table();
 			String tmp = readfile.readLine();
 			String[] s = tmp.split("\t");
