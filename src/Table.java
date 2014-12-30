@@ -34,26 +34,34 @@ public class Table {
 		return -1; //not found in every tables
 	}
 	
-	public void printOnScreen(){
+	public String printOnScreen(){
 		int selectN = mydbms.selectN;
 		String[] selectAttr = mydbms.selectAttr;
+		String s = "";
 		
 		for(int i=0;i<selectN;i++){
 			System.out.print(selectAttr[i]+"\t");
+			s += selectAttr[i]+ "\t";
 		}
 		System.out.println();
+		s += "\n";
 		for(int i=0;i<this.tuples.size();i++){
 			for(int j=0;j<selectN;j++){
 				int index = this.findAttr_in_table(selectAttr[j]);
 				if(index != -1){
 					System.out.print(this.tuples.get(i).get(index)+"\t");
+					s +=this.tuples.get(i).get(index)+"\t";
 				}else{
 					System.out.println("Incorrect selection: Some attributes are not found in resultTable.");
-					return;
+					s +="Incorrect selection: Some attributes are not found in resultTable.\n";
+					return s;
 				}
 			}
 			System.out.println();
+			s+="\n";
 		}
+		
+		return s;
 	}
 	
 	public void remove(int targetIndex, Condi condition){

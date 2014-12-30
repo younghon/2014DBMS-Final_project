@@ -16,6 +16,7 @@ public class mydbms {
 	static List<Table> tables = new ArrayList<Table>();
 	static List<String> total_attr = new ArrayList<String>();
 	static Table result;
+	static String resultToWindow;
 	
 	
 	public static void main(String[] args) throws IOException {
@@ -202,7 +203,7 @@ public class mydbms {
 		
 		
 		if(!Aggregate.isAggregate(selectAttr)){
-			resultTable.printOnScreen();
+			resultToWindow = resultTable.printOnScreen();
 		}else{
 			new Aggregate(selectAttr, resultTable);
 		}

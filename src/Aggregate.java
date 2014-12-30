@@ -116,14 +116,19 @@ public class Aggregate {
 	}
 	
 	public void print(){
+		mydbms.resultToWindow = "";
 		for(int i=0;i<aggrList.size();i++){
+			mydbms.resultToWindow += aggrList.get(i).function_type + "("+aggrList.get(i).Attribute+ ")\t";
 			System.out.print(aggrList.get(i).function_type + "("+aggrList.get(i).Attribute+ ")\t");
 		}
+		mydbms.resultToWindow += "\n";
 		System.out.println();
 		
 		for(int i=0;i<aggrList.size();i++){
+			mydbms.resultToWindow += aggrList.get(i).value+"\t";
 			System.out.print(aggrList.get(i).value+"\t");
 		}
+		mydbms.resultToWindow += "\n";
 		System.out.println();
 		aggrList.clear();
 	}
