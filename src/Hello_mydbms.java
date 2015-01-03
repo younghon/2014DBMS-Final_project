@@ -13,7 +13,7 @@ import org.omg.CORBA.PUBLIC_MEMBER;
 
 public class Hello_mydbms {
 	private static Text txtInputSqlQuery;
-
+	private static Label lblNewLabel;
 	/**
 	 * Launch the application.
 	 * @param args
@@ -27,7 +27,7 @@ public class Hello_mydbms {
 		txtInputSqlQuery = new Text(shell, SWT.BORDER);
 		txtInputSqlQuery.setBounds(10, 30, 434, 151);
 		
-		Label lblNewLabel = new Label(shell, SWT.BORDER);
+		lblNewLabel = new Label(shell, SWT.BORDER);
 		lblNewLabel.setBounds(10, 208, 581, 265);
 		
 		Button btnNewButton = new Button(shell, SWT.NONE);

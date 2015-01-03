@@ -5,6 +5,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Vector;
 
 
 
@@ -291,5 +292,29 @@ public class mydbms {
 			parseSELECT(result);
 			System.out.println("Answer by nested query.");
 		}
+	}
+	
+	static Vector<Vector<String>> rowDataVector(){
+		Vector<Vector<String>> nestedStringVector = new Vector<Vector<String>>();
+		System.out.println(resultToWindow);
+		String [] record = resultToWindow.split("\n");
+		for(int i=1;i<record.length;i++){
+			Vector<String> stringVector = new Vector<String>();
+			String [] elements = record[i].split("\t");
+			for(int j=0; j<elements.length; j++){
+				stringVector.add(elements[j]);
+			}
+			nestedStringVector.add(stringVector);			
+		}
+		return nestedStringVector;		
+	}
+	
+	static Vector<String> ColumnNamesVector(){
+		Vector<String> stringVector = new Vector<String>();
+		String [] elements = resultToWindow.split("\n")[0].split("\t");
+		for(int j=0; j<elements.length; j++){
+			stringVector.add(elements[j]);
+		}
+		return stringVector;		
 	}
 }
